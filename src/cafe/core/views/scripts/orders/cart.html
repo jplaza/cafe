@@ -1,0 +1,51 @@
+<div class="page-header">
+  <h1>Shopping cart</h1>
+  <div class="row">
+    <div class="span12" id="content-header">
+    </div>
+  </div>
+  <div class="row">
+    <div class="span12">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-tpl="cart-item">
+              <div class="cart-item-image">
+                <img src="">
+              </div>
+              <div class="cart-item-description">
+                Clojure Blue T-shirt
+              </div>
+            </td>
+            <td data-tpl="cart-price">
+              $25.45
+            </td>
+            <td data-tpl="cart-qty">
+              <input name="cart_item[][qty]" type="text" value="1">
+            </td>
+            <td data-tpl="cart-total">
+              $25.45
+            </td>
+            <td data-tpl="cart-action">
+              <a class="btn" href="#">Remove</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span12" id="empty-cart">
+      <h3>Your shopping cart is empty</h3>
+    </div>
+  </div>
+</div>
