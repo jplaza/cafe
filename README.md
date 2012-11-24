@@ -1,4 +1,4 @@
-# clementine
+# cafe
 
 E-commerce platform running a noir-based web server with tools for:
 

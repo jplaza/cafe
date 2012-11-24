@@ -1,17 +1,18 @@
-;; ## Orders
+;; # Orders
 ;;
 ;; Orders business logic. An order groups all the information related to a
-;; purchase in the store. Products (line items), billing address, payments,
+;; purchase. Products (line items), billing address, payments,
 ;; shipping address, shipments.
 ;;
 (ns cafe.core.data.order
   (:use [korma.db]
-        [korma.core])
+        [korma.core]
+        [cafe.core.data.validation])
   (:require [cafe.core.data.user :as users]
             [cafe.core.data.address :as address]
             [cafe.core.data.status :as status]))
 
-(declare prepare-input)
+(declare prepare-input insert-items)
 
 (defentity line_items)
 (defentity payments)
@@ -37,12 +38,9 @@
   (belongs-to status/status)
   (belongs-to users/users {:fk :user_id}))
 
+()
+
 ;; ## Data store functions
-
-(defn insert-items [order-id items]
-  (insert line_items
-    (values (map #(assoc % :order_id order-id) items))))
-
 (defn create [new-order]
   (->
     (:id (insert orders
@@ -72,6 +70,13 @@
 (defn delete! [id]
   (delete orders
           (where {:id id})))
+
+;; # Line items functions
+(defn insert-items
+  "Helper function. Inserts items in the database"
+  [order-id items]
+  (insert line_items
+    (values (map #(assoc % :order_id order-id) items))))
 
 ;; ## Private functions.
 
