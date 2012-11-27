@@ -18,6 +18,12 @@
 (defentity payments)
 (defentity shipments)
 
+(defvalid order 
+  (validate [:billing_address_id :shipping_address_id] :presence))
+
+(defn get-errors []
+  (errors))
+
 ;; ### Orders table fields:
 ;; * id *integer*
 ;; * customer_id *integer*
@@ -38,14 +44,27 @@
   (belongs-to status/status)
   (belongs-to users/users {:fk :user_id}))
 
-()
-
 ;; ## Data store functions
+
+; (defn create [new-order]
+;   (try
+;     (if (valid? new-order)
+;       (->
+;         (:id (insert orders
+;           (values (prepare-input new-order))))
+;         (insert-items (:line-items new-order))))
+;     (catch Exception e
+;       ;; log error
+;       ;; (println "Error SQL: " (.getMessage e))
+;       false)))
+
 (defn create [new-order]
-  (->
-    (:id (insert orders
-      (values (prepare-input new-order))))
-    (insert-items (:line-items new-order))))
+  (if (valid? new-order)
+    (->
+      (:id (insert orders
+        (values (prepare-input new-order))))
+      (insert-items (:line-items new-order)))
+    false))
 
 (defn update-total [order]
   (update orders
