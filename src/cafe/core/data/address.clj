@@ -1,11 +1,26 @@
 (ns cafe.core.data.address
   (:use [korma.db]
-        [korma.core]))
+        [korma.core]
+        [cafe.core.data.validation]))
 
 (declare create update-all)
 
+(defvalid address
+  (validate [:firstname :lastname :address1 :city :province :country_id] :presence))
+
 (defentity countries)
 (defentity provinces)
+
+;; ## Address fields
+;; :firstname 
+;; :lastname
+;; :address1
+;; :address2
+;; :suburb
+;; :city
+;; :postcode
+;; :province_id
+;; :country_id
 
 (defentity address
   (table :addresses)
@@ -15,9 +30,11 @@
 (defn save
   "Creates or updates an address in the database"
   [address]
-  (if (contains? address :id)
-    (update-all address)
-    (create address)))
+  (if (valid? address)
+    (if (contains? address :id)
+      (update-all address)
+      (create address))
+    false))
 
 ;; ## Countries and provinces (subdivisions)
 (defn find-country [country-id]

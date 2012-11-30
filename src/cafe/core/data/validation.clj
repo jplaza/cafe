@@ -4,14 +4,14 @@
 
 (declare add-error)
 
-(def error-list (atom {}))
+(def errors (atom {}))
 (def rules (atom {}))
 
 ;; ## Validation functions
 
 (defn field-valid?
   "Performs all validations for the given field using the provided value and 
-  returns a true if all rules are met. True if no rules are defined for field"
+  returns a true if all rules are met. Also true if no rules are defined for field"
   [field value]
   (if (contains? @rules field)
     (reduce #(and %1 %2) (map #(if (nil? (:arg %))
@@ -26,7 +26,7 @@
   (let [kvl (map vector (keys data) (vals data))
         data-keys (-> data keys set)
         rules-keys (-> @rules keys set)]
-    (reset! error-list {})
+    (reset! errors {})
     (if (= (count (intersection rules-keys data-keys)) (count @rules))
       (reduce #(and %1 %2)
               (map #(field-valid? (% 0) (% 1))
@@ -35,36 +35,52 @@
         (add-error "incomplete record")
         false))))
 
-;; The purpose of this macro should be to create one or more functions that will
-;; allow to test for a record validity. In the current version the only function
-;; available for this purpose is valid?
+(defn validate
+  "Adds a validation rule to the set.
+  rule must be one of the following keywords
+  __:presence__
+  __:number__
+  __:greater-than__
+  __:greater-than-or-equal-to__
+  __:less-than__
+  __:less-than-or-equal-to__
+  fields can be a keyword which represents the name of the field, or a vector of
+  keywords of field names:
+
+    (validate :name :presence)
+    (validate [:age :id] :number)
+  "
+  [fields rule & [arg]]
+  (doseq [field (if-not (vector? fields) (conj [] fields) fields)]
+    (swap! rules
+           #(assoc-in % [field rule] {:func (resolve (symbol (name rule))) :arg arg}))))
+
 (defmacro defvalid
-  "Defines a valid? function with the provided rules. In order for a record to
-  be valid these conditions must me met:
+  "Defines two helper functions, valid? and get-errors.
+  In order for a record to be valid these conditions must me met:
+
   - All rules should be passed
   - The record should provide valid data for a field if a rule for it is defined"
   [record & body]
   (let [record# record]
     `(do
       (do ~@body)
+      (defn ~(symbol "get-errors") [] (deref ~'errors))
       (defn ~(symbol "valid?") [~'data]
         (record-valid? ~'data)))))
 
-(defn validate [fields rule & [arg]]
-  (doseq [field (if-not (vector? fields) (conj [] fields) fields)]
-    (swap! rules
-           #(assoc-in % [field rule] {:func (resolve (symbol (name rule))) :arg arg}))))
-
 (defn add-error
-  "Adds an error message to the list of errors"
+  "Adds an error message to the list of errors. If not field is specified uses
+  :base. Base is the error namespace for general errors"
   [message & [field]]
-  (swap! error-list
+  (swap! errors
          #(assoc % (or field :base) (conj (get % (or field :base) []) message))))
 
-(defn errors [] @error-list)
-
 ;; ## Rules
-(defn validation-rule [predicate message & [field]]
+;; Set of available rules for validation
+(defn validation-rule
+  "Helper function that adds common functionality to the rules functions"
+  [predicate message & [field]]
   (if-not predicate
     (do
       (add-error message field)

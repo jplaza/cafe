@@ -1,47 +1,55 @@
-# Clementine shop
+# Cafe Ecommerce Platform
 
 ## Store core
 
-Clementine online store.
 This project is intended to be the foundation of Clojure-based ecommerce software
-code named Cafe store.
+codenamed Cafe.
 
-## Modelo de datos (Cafe core v0.0.1)
+## Modelo de datos (Cafe core v0.1.0)
 
-### __store__
+### store
 * email
 * name
 * templates
 
-### __configuration__
+### configuration
 
-### __products__
+### products
 
-### __categories__
+### categories
 
-### __customers__
+### customers
 
-### __order__
+### order
 * id :integer
 * number :string
+* status :integer
 * customer :integer
 * date_purchased :datetime
 * last_modified :datetime
 * payment_method :string
 
-### __order\_line\_items__
+### shipments
 
-### __order_totals__
+Una orden tiene uno o mas shipments.
+un shipment tiene 1 o mas productos.
+un shipment tiene numero, tracking number, fecha de env&iacute;o, status, m&eacute;todo de env&iacute;o
+
+* id :integer
+* order_id :integer
+* number :string
+* tracking_number :string
+* shiped_at :datetime
+* status :integer
+* cost :float
+
+### order\_line\_items
+
+### order_totals
 * id :integer
 * order_id :integer
 * value :float
 * type :string
-
-### __cart__
-* id :integer
-* customer_id :integer
-* product_id :integer
-* date_added :datetime
 
 ### modules
 * module_name :string (machine readable)
