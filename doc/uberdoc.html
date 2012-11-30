@@ -3138,19 +3138,35 @@ API.</p>
     (resp/status 403 (resp/json (:message &quot;Unauthorized&quot;)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#cafe.core.data.address" name="cafe.core.data.address"><h1 class="project-name">cafe.core.data.address</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns cafe.core.data.address
   (:use [korma.db]
-        [korma.core]))</pre></td></tr><tr><td class="docs">
+        [korma.core]
+        [cafe.core.data.validation]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare create update-all)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defvalid address
+  (validate [:firstname :lastname :address1 :city :province :country_id] :presence))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defentity countries)
-(defentity provinces)</pre></td></tr><tr><td class="docs">
+(defentity provinces)</pre></td></tr><tr><td class="docs"><h2>Address fields</h2>
+
+<p>:firstname 
+:lastname
+:address1
+:address2
+:suburb
+:city
+:postcode
+:province_id
+:country_id</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defentity address
   (table :addresses)
   (has-one countries)
   (has-one provinces))</pre></td></tr><tr><td class="docs"><p>Creates or updates an address in the database</p>
 </td><td class="codes"><pre class="brush: clojure">(defn save
   [address]
-  (if (contains? address :id)
-    (update-all address)
-    (create address)))</pre></td></tr><tr><td class="docs"><h2>Countries and provinces (subdivisions)</h2>
+  (if (valid? address)
+    (if (contains? address :id)
+      (update-all address)
+      (create address))
+    false))</pre></td></tr><tr><td class="docs"><h2>Countries and provinces (subdivisions)</h2>
 </td><td class="codes"><pre class="brush: clojure">(defn find-country [country-id]
   (select countries
     (where {:id [= country-id]})))</pre></td></tr><tr><td class="docs"><p>Pulls a list of all countries stored in the database. Sample country map:
@@ -3491,7 +3507,7 @@ shipping address, shipments.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns cafe.core.data.validation
   (:use clojure.set))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare add-error)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def error-list (atom {}))
+</td><td class="codes"><pre class="brush: clojure">(def errors (atom {}))
 (def rules (atom {}))</pre></td></tr><tr><td class="docs"><h2>Validation functions</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Performs all validations for the given field using the provided value and 
   returns a true if all rules are met. Also true if no rules are defined for field</p>
@@ -3508,29 +3524,21 @@ shipping address, shipments.</p>
   (let [kvl (map vector (keys data) (vals data))
         data-keys (-&gt; data keys set)
         rules-keys (-&gt; @rules keys set)]
-    (reset! error-list {})
+    (reset! errors {})
     (if (= (count (intersection rules-keys data-keys)) (count @rules))
       (reduce #(and %1 %2)
               (map #(field-valid? (% 0) (% 1))
                    kvl))
       (do
         (add-error &quot;incomplete record&quot;)
-        false))))</pre></td></tr><tr><td class="docs"><p>Defines a valid? function with the provided rules. In order for a record to
-  be valid these conditions must me met:</p>
-
-<ul>
-<li>All rules should be passed</li>
-<li>The record should provide valid data for a field if a rule for it is defined</li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defmacro defvalid
-  [record &amp; body]
-  (let [record# record]
-    `(do
-      (do ~@body)
-      (defn ~(symbol &quot;valid?&quot;) [~'data]
-        (record-valid? ~'data)))))</pre></td></tr><tr><td class="docs"><p>Adds a validation rule to the set.
-  rule must be one of the following keywords <em>:presence</em> :number :greater-than
-  :greater-than-or-equal-to :less-than :less-than-or-equal-to
+        false))))</pre></td></tr><tr><td class="docs"><p>Adds a validation rule to the set.
+  rule must be one of the following keywords
+  <strong>:presence</strong>
+  <strong>:number</strong>
+  <strong>:greater-than</strong>
+  <strong>:greater-than-or-equal-to</strong>
+  <strong>:less-than</strong>
+  <strong>:less-than-or-equal-to</strong>
   fields can be a keyword which represents the name of the field, or a vector of
   keywords of field names:</p>
 
@@ -3541,13 +3549,32 @@ shipping address, shipments.</p>
   [fields rule &amp; [arg]]
   (doseq [field (if-not (vector? fields) (conj [] fields) fields)]
     (swap! rules
-           #(assoc-in % [field rule] {:func (resolve (symbol (name rule))) :arg arg}))))</pre></td></tr><tr><td class="docs"><p>Adds an error message to the list of errors</p>
+           #(assoc-in % [field rule] {:func (resolve (symbol (name rule))) :arg arg}))))</pre></td></tr><tr><td class="docs"><p>Defines two helper functions, valid? and get-errors.
+  In order for a record to be valid these conditions must me met:</p>
+
+<ul>
+<li>All rules should be passed</li>
+<li>The record should provide valid data for a field if a rule for it is defined</li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defmacro defvalid
+  [record &amp; body]
+  (let [record# record]
+    `(do
+      (do ~@body)
+      (defn ~(symbol &quot;get-errors&quot;) [] (deref ~'errors))
+      (defn ~(symbol &quot;valid?&quot;) [~'data]
+        (record-valid? ~'data)))))</pre></td></tr><tr><td class="docs"><p>Adds an error message to the list of errors. If not field is specified uses
+  :base. Base is the error namespace for general errors</p>
 </td><td class="codes"><pre class="brush: clojure">(defn add-error
   [message &amp; [field]]
-  (swap! error-list
-         #(assoc % (or field :base) (conj (get % (or field :base) []) message))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn errors [] @error-list)</pre></td></tr><tr><td class="docs"><h2>Rules</h2>
-</td><td class="codes"><pre class="brush: clojure">(defn validation-rule [predicate message &amp; [field]]
+  (swap! errors
+         #(assoc % (or field :base) (conj (get % (or field :base) []) message))))</pre></td></tr><tr><td class="docs"><p>Helper function that adds common functionality to the rules functions</p>
+
+<h2>Rules</h2>
+
+<p>Set of available rules for validation</p>
+</td><td class="codes"><pre class="brush: clojure">(defn validation-rule
+  [predicate message &amp; [field]]
   (if-not predicate
     (do
       (add-error message field)
