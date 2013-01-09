@@ -12,7 +12,7 @@ E-commerce platform running a noir-based web server with tools for:
 ## Usage
 Using leiningen 2.x:
 
-    DATABASE_URL=postgresql://DBUSER:PASSWORD@HOST/DBNAME lein run
+    DATABASE_URL=postgresql://DBUSER:PASSWORD@HOST/DBNAME lein ring server
 
 Using foreman:
 
