@@ -76,21 +76,21 @@
 
 (defn log-signin [user ip-address]
   (let [now (date/now-sql)]
-    (update-attributes user { :current_sign_in_ip ip-address
-                              :last_sign_in_ip ip-address
-                              :sign_in_count (inc (:sign_in_count user))
-                              :failed_attempts 0
-                              :current_sign_in_at now
-                              :last_sign_in_at now
-                              :last_request_at now})))
+    (update-attributes (merge user {:current_sign_in_ip ip-address
+                                    :last_sign_in_ip ip-address
+                                    :sign_in_count (inc (:sign_in_count user))
+                                    :failed_attempts 0
+                                    :current_sign_in_at now
+                                    :last_sign_in_at now
+                                    :last_request_at now}))))
 
 (defn log-signin-attempt [user ip-address]
-  (update-attributes user { :failed_attempts (inc (:failed_attempts user))
-                            :last_request_at (date/now-sql)}))
+  (update-attributes (merge user {:failed_attempts (inc (:failed_attempts user))
+                                  :last_request_at (date/now-sql)})))
 
 (defn log-signout [user]
-  (update-attributes user { :current_sign_in_ip nil
-                            :current_sign_in_at nil}))
+  (update-attributes (merge user {:current_sign_in_ip nil
+                                  :current_sign_in_at nil})))
 
 (defn add-roles [new-roles]
   (insert roles

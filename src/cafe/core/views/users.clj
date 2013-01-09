@@ -1,6 +1,5 @@
 (ns cafe.core.views.users
-  (:use [noir.core]
-        [cafe.core.views.common])
+  (:use [cafe.core.views.common])
   (:require [noir.response :as resp]
             [noir.request :as req]
             [noir.session :as session]
@@ -8,48 +7,46 @@
             [cafe.core.data.user :as users]))
 
 ;; Temporary test page
-(defpage "/shop" {}
+(defn home []
   (layout-one-col
-    (html/html-resource (script-path "users" "shop"))
-    (session/flash-get)))
+    (html/html-resource (script-path "users" "shop"))))
 
-(defpage register [:get "/register"] {}
+(defn register [& request]
   (layout-one-col (html/html-resource (script-path "users" "new"))))
 
-(defpage sign-in [:get "/users/sign-in"] {}
-  (layout-one-col
-    (html/html-resource (script-path "users" "sign-in"))
-    (session/flash-get)))
+(defn sign-in [& request]
+  (if (signed-in?)
+    (resp/redirect "/account")
+    (layout-one-col
+      (html/html-resource (script-path "users" "sign-in")))))
 
-(defpage [:post "/users/sign-out"] {}
+(defn sign-out []
   (session/clear!)
   (resp/redirect "/shop"))
 
-(defpage [:post "/users/validate"] {:keys [email password]}
-  (if (users/authenticate email password (:remote-addr req/ring-request))
+(defn validate [email password]
+  (if (users/authenticate email password "0.0.0.0")
     (do
       (register-signin (users/find-by-email email))
-      (resp/redirect (url-for account)))
+      (resp/redirect "/account"))
     (do
-      (session/flash-put! {:error "Correo electrónico o contraseña incorrectos"})
-      (resp/redirect (url-for sign-in)))))
+      (session/flash-put! :messages {:error "Correo electrónico o contraseña incorrectos"})
+      (resp/redirect "/sign-in"))))
 
-(defpage users [:post "/users"] {:keys [user]}
+(defn create [user]
   (if (users/create user)
     (do
-      (session/flash-put! {:success (format "¡Bienvenido %s! Tu cuenta ha sido creada" (:name user))})
+      (session/flash-put! :messages {:success (format "¡Bienvenido %s! Tu cuenta ha sido creada" (:name user))})
       (register-signin user)
       (resp/redirect "/shop"))
     (do
-      (session/flash-put! {:error "El correo que utilizaste ya esta registrado"})
+      (session/flash-put! :messages {:error "El correo que utilizaste ya está en nuestros
+                                   registros. Si olvidaste tu contraseña da clic
+                                   <a href=\"\">aquí</a>"})
       (resp/redirect "/users/register"))))
 
-(defpage account "/account" {}
+(defn account []
   (if-not (signed-in?)
-    (resp/redirect (url-for sign-in))
+    (resp/redirect "/sign-in")
     (layout-one-col
-      (html/html-resource (script-path "users" "account"))
-      (session/flash-get))))
-
-(defpage tests "/users/tests" {}
-  (render-view))
+      (html/html-resource (script-path "users" "account")))))

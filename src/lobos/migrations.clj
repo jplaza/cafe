@@ -118,27 +118,86 @@
   (up []
     (create
       (table :orders
-        (timestamp :date_purchased (default (now)))
-        (timestamp :last_modified (default (now)))
-        (text :special_instructions)
+        (integer :id :primary-key :auto-inc)
+        (integer :user_id :null [:refer :users :id])
+        (text :email)
+        (decimal :total 10 8)
+        (decimal :adjustment_total 10 8)
+        (decimal :credit_total 10 8)
         (integer :status_id :not-null [:refer :status :id])
         (integer :billing_address_id :not-null [:refer :addresses :id])
         (integer :shipping_address_id :not-null [:refer :addresses :id])
-        (decimal :total 10 4)
-        (integer :user_id :not-null [:refer :users :id])
-        (integer :id :primary-key :auto-inc))))
+        (varchar :shipment_status 50)
+        (varchar :payment_status 50)
+        (text :special_instructions)
+        (timestamp :purchased_at (default (now)))
+        (timestamp :last_modified (default (now))))))
   (down [] (drop (table :orders))))
 
 (defmigration create-table-line-items
   (up [] (create (table :line_items
                         (integer :id :primary-key :auto-inc)
                         (integer :quantity)
-                        (decimal :price 10 4 [:not-null])
+                        (decimal :price 10 8 [:not-null])
                         (integer :product_id :not-null [:refer :products :id])
                         (integer :order_id :not-null [:refer :orders :id])
                         (timestamp :created_at (default (now)))
                         (timestamp :updated_at (default (now))))))
   (down [] (drop (table :line_items))))
+
+(defmigration create-table-shipments
+  (up [] (create (table :shipments
+                        (integer :id :primary-key :auto-inc)
+                        (integer :order_id :not-null [:refer :orders :id])
+                        (varchar :number 20 :not-null)
+                        (text :tracking_number)
+                        (timestamp :shiped_at)
+                        (varchar :status 15)
+                        (text :notes)
+                        (timestamp :created_at (default (now)))
+                        (timestamp :updated_at (default (now))))))
+  (down [] (drop (table :shipments))))
+
+(defmigration create-table-shipment-items
+  (up [] (create (table :shipment_items
+                        (integer :id :primary-key :auto-inc)
+                        (integer :product_id :not-null [:refer :products :id])
+                        (integer :order_id :not-null [:refer :orders :id])
+                        (timestamp :created_at (default (now)))
+                        (timestamp :updated_at (default (now))))))
+  (down [] (drop (table :shipment_items))))
+
+(defmigration create-table-payments
+  (up [] (create (table :payments
+                        (integer :id :primary-key :auto-inc)
+                        (integer :order_id :not-null [:refer :orders :id])
+                        (decimal :amount 10 8 [:not-null] (default 0.0))
+                        (integer :payment_method_id [:refer :payment_methods :id])
+                        (timestamp :created_at (default (now)))
+                        (timestamp :updated_at (default (now))))))
+  (down [] (drop (table :payments))))
+
+(defmigration create-table-payment-methods
+  (up [] (create (table :payment_methods
+                        (integer :id :primary-key :auto-inc)
+                        (varchar :name 30 :not-null)
+                        (text :description)
+                        (smallint :enabled)
+                        (integer :type)
+                        (timestamp :created_at (default (now)))
+                        (timestamp :updated_at (default (now))))))
+  (down [] (drop (table :payment_methods))))
+
+(defmigration create-table-shipping-methods
+  (up [] (create (table :shipping_methods
+                        (integer :id :primary-key :auto-inc)
+                        (varchar :name 30 :not-null)
+                        (text :description)
+                        (integer :zone_id)
+                        (tinyint :enabled)
+                        (timestamp :created_at (default (now)))
+                        (timestamp :updated_at (default (now))))))
+  (down [] (drop (table :shipping_methods))))
 
 ;;(defmigration add-products-table
   ;; code be executed when migrating the schema "up" using "migrate"

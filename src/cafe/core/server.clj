@@ -1,36 +1,43 @@
 (ns cafe.core.server
-  (:use [noir.core]
-        [clojure.tools.nrepl.server :only (start-server stop-server)])
-  (:require [noir.server :as server]
-            [noir.response :as resp]
+  (:require [noir.util.middleware :refer [wrap-strip-trailing-slash wrap-force-ssl]]
+            [noir.session :refer [wrap-noir-session wrap-noir-flash]]
+            [compojure.core :refer [routes]]
+            [compojure.handler :as handler]
+            [compojure.route :as route]
             [cheshire.core :as json]
-            [cafe.core.data.base :as data]))
+            [cafe.core.data.base :as data]
+            [cafe.core.routes :refer :all]
+            [clojure.tools.nrepl.server :refer :all]))
 
 ;; Create repl server
-(defonce repl-server (start-server :port 7888))
+; (defonce repl-server (start-server :port 7888))
 
 ;; Initialize database connection
 (data/init)
 
 ;; Middleware that checks the body of the request for a JSON string and appends
 ;; the parsed data as request parameters as the :params key
-(defn json-data [handler]
-  (fn [req]
-    (let  [new-req
-            (if (= "application/json" (get-in req [:headers "content-type"]))
-              (update-in req [:params] assoc :json (json/parse-string (slurp (:body req)) true))
-              req)]
-      (handler new-req))))
+; (defn json-data [handler]
+;   (fn [req]
+;     (let [new-req (if (= "application/json" (get-in req [:headers "content-type"]))
+;                   (update-in req [:params] assoc :json (json/parse-string (slurp (:body req)) true))
+;                   req)]
+;       (handler new-req))))
 
-(defn -main [& m]
-  (let [mode (or (first m) :dev)
-        port (Integer. (get (System/getenv) "PORT" "8080"))]
-    ;; This would be the desired way to plug the middleware to parse the body
-    ;; since it will only affect the API route. This functionality is not correctly
-    ;; implemented in Noir so we will have to wait probably until the next stable
-    ;; release.
-    ; (server/wrap-route "/api/*" json-data)
-    (server/add-middleware json-data)
-    (server/start port {:mode (keyword mode)
-                        :ns 'cafe})
-    (server/load-views "src/cafe/core/views" "src/cafe/api/views")))
+(def app
+  (-> (routes users-routes
+              (route/resources "/")
+              (route/not-found "Not Found"))
+      (handler/site)
+      (wrap-noir-flash)
+      (wrap-strip-trailing-slash)
+      (wrap-noir-session)))
+
+; (defn main [& m]
+;   (let [mode (or (first m) :dev)
+;         port (Integer. (get (System/getenv) "PORT" "8080"))]
+;     (server/add-middleware json-data)
+;     (server/start port {:mode (keyword mode)
+;                         :ns 'cafe})
+;     (server/load-views "src/cafe/core/views" "src/cafe/api/views")))
+

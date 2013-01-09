@@ -9,6 +9,8 @@
         [korma.core]
         [cafe.core.data.validation])
   (:require [cafe.core.data.user :as users]
+            [cafe.core.checkout.shipment :as shipment]
+            [cafe.core.checkout.payment :as payment]
             [cafe.core.data.address :as address]
             [cafe.core.data.status :as status]))
 
@@ -29,12 +31,11 @@
 ;; * customer_id *integer*
 ;; * billing_address_id _integer_
 ;; * shipping_address_id _integer_
-;; * date_purchased _datetime_
+;; * purchased_at _datetime_
 ;; * last_modified _datetime_
 ;; * total _decimal_
 ;; * status_id _integer_
 ;; * special_instructions _varchar_
-;; * shipping_method_id _integer_
 
 (defentity orders
   (table :orders)
@@ -66,16 +67,31 @@
       (insert-items (:line-items new-order)))
     false))
 
+(defn update-attribute [record-id attribute new-value]
+  (update users
+    (set-fields { attribute new-value
+                  :updated_at (sqlfn now)}})
+    (where {:id record-id})))
+
 (defn update-total [order]
   (update orders
           (set-fields { :total (:total order)
-                        :updated_at "NOW()"})
+                        :updated_at (sqlfn now)})
           (where {:id (:id order)})))
 
 (defn update-status [order status-id]
   (update orders
           (set-fields {:status_id status-id})
           (where {:id (:id order)})))
+
+(defn set-billing-address [order-id address-id]
+  (update-attribute order-id :billing_address_id address-id))
+
+(defn set-shipping-address [order-id address-id]
+  (update-attribute order-id :shipping_address_id address-id))
+
+(defn calculate-total [items]
+  (reduce + (map #(* (:price %) (:quantity %)) items)))
 
 (defn find-all []
   (select orders
@@ -92,10 +108,16 @@
 
 ;; # Line items functions
 (defn insert-items
-  "Helper function. Inserts items in the database"
+  "Helper function. Inserts line items in the database"
   [order-id items]
   (insert line_items
     (values (map #(assoc % :order_id order-id) items))))
+
+(defn insert-item
+  "Inserts one line item in the database"
+  [order-id item]
+  (insert line_items
+    (values (assoc item :order_id order-id))))
 
 ;; ## Private functions.
 

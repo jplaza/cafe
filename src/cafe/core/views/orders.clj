@@ -9,5 +9,4 @@
 
 (defpage cart [:get "/cart"] {}
   (layout-one-col
-    (html/html-resource (script-path "orders" "cart"))
-    (session/flash-get)))
+    (html/html-resource (script-path "orders" "cart"))))

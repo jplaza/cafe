@@ -7,3 +7,4 @@ pom.xml
 */classes/*
 .DS_Store
 */.DS_Store
+target/*

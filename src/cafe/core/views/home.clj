@@ -1,21 +1,17 @@
 (ns cafe.core.views.home
-  (:use [noir.core])
   (:require [net.cgrand.enlive-html :as html]))
 
-(def store {:title "Clementine - Personaliza lo que quieras"
-            :meta-author "Juan Antonio Arguello, Valentina Ayala, Eduardo Raad y Cristina Villacres"
-            :meta-description "Personaliza lo que quieras"
-            :welcome-message "Hola Clementine"
-            :categories [{:name "Baby Shower" :uri "/baby-shower" :order 1}
-                         {:name "Aniversarios" :uri "/aniversarios" :order 2}
-                         {:name "Bautizo" :uri "/bautizo" :order 3}
-                         {:name "Cumpleanos" :uri "cumpleanos" :order 4}
-                         {:name "Despedida de Soltera" :uri "despedida-de-soltera" :order 5}]
-            :featured [{:name "Kits de Terror"
-                        :description "Una seleccion de papeleria y accesorios para matar del miedo a tus invitados"
+(def store {:title "Base Stores"
+            :meta-author "Juan Antonio Arguello, Eduardo Raad"
+            :meta-description "Ecommerce Platform"
+            :welcome-message "Welcome customer!"
+            :categories [{:name "Category 1" :uri "/category-1" :order 1}
+                         {:name "Category 2" :uri "/category-2" :order 2}]
+            :featured [{:name "Product 1"
+                        :description "Description 1"
                         :image "/img/terror.png"}
-                       {:name "Experiencias Picantes"
-                        :description "Kits de supervivencia para despedidas de soltera."
+                       {:name "Product 2"
+                        :description "Description 2"
                         :image "/img/picantes.png"}]
             :products [{}]})
 
@@ -49,5 +45,5 @@
   [:div.content]
   (html/content (:welcome-message store)))
 
-(defpage "/" []
+(defn home "/" []
   (layout store))
