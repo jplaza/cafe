@@ -18,11 +18,12 @@
                  :state "cart"}))
 
 (defn load-order []
-  (if-let [order-id (session/get :order-id)]
-    (order/find-by-id order-id)
-    (let [new-order (init-order (session/get :user-id))]
-      (session/put! :order-id)
-      new-order)))
+  (order/find-by-id "7"))
+  ; (if-let [order-id (session/get :order-id)]
+  ;   (order/find-by-id "7")
+  ;   (let [new-order (init-order (session/get :user-id))]
+  ;     (session/put! :order-id (:id new-order))
+  ;     new-order)))
 
 (defn add-product [product-id qty unit-price options]
   (let [order (load-order)

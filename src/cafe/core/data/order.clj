@@ -17,7 +17,7 @@
 (declare prepare-input insert-items mapify-items mapify-item)
 
 (defentity line_items
-  (transform mapify-item))
+  (transform #(mapify-item %)))
 (defentity payments)
 (defentity shipments)
 

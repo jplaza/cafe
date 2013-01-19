@@ -1,6 +1,6 @@
 (ns cafe.core.server
-  (:require [noir.util.middleware :refer [wrap-strip-trailing-slash wrap-force-ssl]]
-            [noir.session :refer [wrap-noir-session wrap-noir-flash]]
+  (:require [noir.util.middleware :refer [app-handler wrap-strip-trailing-slash wrap-force-ssl]]
+            [noir.session :refer [wrap-noir-flash wrap-noir-session]]
             [compojure.core :refer [routes]]
             [compojure.handler :as handler]
             [compojure.route :as route]
@@ -30,6 +30,5 @@
               (route/resources "/")
               (route/not-found "Not Found"))
       (handler/site)
-      (wrap-noir-flash)
-      (wrap-strip-trailing-slash)
-      (wrap-noir-session)))
+      (wrap-noir-session)
+      (wrap-noir-flash)))

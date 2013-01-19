@@ -56,4 +56,7 @@
     (:name (session/get :user))
     "invitado"))
 
+(defn format-currency [amount]
+  (str "$" (format "%.2f" amount)))
+
 ; (defn get-view-script [])
