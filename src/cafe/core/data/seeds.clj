@@ -1,7 +1,7 @@
 (ns cafe.core.data.seeds
   (:use [korma.core]
         [korma.db])
-  (:require [cafe.core.data.core :as data]
+  (:require [cafe.core.data.base :as data]
             [cafe.core.data.order :as orders]
             [cafe.core.data.product :as products]
             [cafe.core.data.user :as users]
@@ -29,6 +29,7 @@
    :billing_address_id 1
    :shipping_address_id 1
    :status_id 1
+   :state "cart"
    :special_instructions "Some instructions"
    :line-items '(
     {:product_id 1 :quantity 3 :price 2.99}

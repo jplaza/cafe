@@ -124,9 +124,10 @@
         (decimal :total 10 8)
         (decimal :adjustment_total 10 8)
         (decimal :credit_total 10 8)
+        (varchar :state 15)
         (integer :status_id :not-null [:refer :status :id])
-        (integer :billing_address_id :not-null [:refer :addresses :id])
-        (integer :shipping_address_id :not-null [:refer :addresses :id])
+        (integer :billing_address_id [:refer :addresses :id])
+        (integer :shipping_address_id [:refer :addresses :id])
         (varchar :shipment_status 50)
         (varchar :payment_status 50)
         (text :special_instructions)
@@ -167,16 +168,6 @@
                         (timestamp :updated_at (default (now))))))
   (down [] (drop (table :shipment_items))))
 
-(defmigration create-table-payments
-  (up [] (create (table :payments
-                        (integer :id :primary-key :auto-inc)
-                        (integer :order_id :not-null [:refer :orders :id])
-                        (decimal :amount 10 8 [:not-null] (default 0.0))
-                        (integer :payment_method_id [:refer :payment_methods :id])
-                        (timestamp :created_at (default (now)))
-                        (timestamp :updated_at (default (now))))))
-  (down [] (drop (table :payments))))
-
 (defmigration create-table-payment-methods
   (up [] (create (table :payment_methods
                         (integer :id :primary-key :auto-inc)
@@ -188,13 +179,23 @@
                         (timestamp :updated_at (default (now))))))
   (down [] (drop (table :payment_methods))))
 
+(defmigration create-table-payments
+  (up [] (create (table :payments
+                        (integer :id :primary-key :auto-inc)
+                        (integer :order_id :not-null [:refer :orders :id])
+                        (decimal :amount 10 8 [:not-null] (default 0.0))
+                        (integer :payment_method_id [:refer :payment_methods :id])
+                        (timestamp :created_at (default (now)))
+                        (timestamp :updated_at (default (now))))))
+  (down [] (drop (table :payments))))
+
 (defmigration create-table-shipping-methods
   (up [] (create (table :shipping_methods
                         (integer :id :primary-key :auto-inc)
                         (varchar :name 30 :not-null)
                         (text :description)
                         (integer :zone_id)
-                        (tinyint :enabled)
+                        (smallint :enabled)
                         (timestamp :created_at (default (now)))
                         (timestamp :updated_at (default (now))))))
   (down [] (drop (table :shipping_methods))))

@@ -15,4 +15,5 @@
                  [cheshire "5.0.0"]]
   :plugins [[lein-marginalia "0.7.1"]
             [lein-ring "0.7.5"]]
+  :aliases {"migrate" ["run" "-m" "lobos.migrations"]}
   :ring {:handler cafe.core.server/app})

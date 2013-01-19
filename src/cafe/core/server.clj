@@ -32,12 +32,3 @@
       (wrap-noir-flash)
       (wrap-strip-trailing-slash)
       (wrap-noir-session)))
-
-; (defn main [& m]
-;   (let [mode (or (first m) :dev)
-;         port (Integer. (get (System/getenv) "PORT" "8080"))]
-;     (server/add-middleware json-data)
-;     (server/start port {:mode (keyword mode)
-;                         :ns 'cafe})
-;     (server/load-views "src/cafe/core/views" "src/cafe/api/views")))
-

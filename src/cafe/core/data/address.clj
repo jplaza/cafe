@@ -6,7 +6,7 @@
 (declare create update-all)
 
 (defvalid address
-  (validate [:firstname :lastname :address1 :city :province :country_id] :presence))
+  (validate [:firstname :lastname :address1 :city :province_id :country_id] :presence))
 
 (defentity countries)
 (defentity provinces)

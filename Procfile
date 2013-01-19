@@ -1,1 +1,1 @@
-web: lein run -m cafe.core
+web: lein ring server

@@ -1,5 +1,5 @@
 (ns cafe.core.data.validation
-  "Validation functions for entity fields"
+  "Validation functions for models fields"
   (:use clojure.set))
 
 (declare add-error)
@@ -12,27 +12,26 @@
 (defn field-valid?
   "Performs all validations for the given field using the provided value and 
   returns a true if all rules are met. Also true if no rules are defined for field"
-  [field value]
+  [record field value]
   (if (contains? @rules field)
     (reduce #(and %1 %2) (map #(if (nil? (:arg %))
-                                  (apply (:func %) (list field value))
-                                  (apply (:func %) (list field value (:arg %))))
+                                  (apply (:func %) (list record field value))
+                                  (apply (:func %) (list record field value (:arg %))))
                               (vals (field @rules))))
     true))
 
 (defn record-valid?
   "Performs all validations and returns a true if all rules are met."
-  [data]
+  [record data]
   (let [kvl (map vector (keys data) (vals data))
         data-keys (-> data keys set)
-        rules-keys (-> @rules keys set)]
+        rules-keys (-> @rules record keys set)]
     (reset! errors {})
-    (if (= (count (intersection rules-keys data-keys)) (count @rules))
+    (if (= (count (intersection rules-keys data-keys)) (count (record @rules)))
       (reduce #(and %1 %2)
-              (map #(field-valid? (% 0) (% 1))
-                   kvl))
+              (map #(field-valid? record (% 0) (% 1)) kvl))
       (do
-        (add-error "incomplete record")
+        (add-error record "incomplete record")
         false))))
 
 (defn validate
@@ -50,10 +49,10 @@
     (validate :name :presence)
     (validate [:age :id] :number)
   "
-  [fields rule & [arg]]
+  [record fields rule & [arg]]
   (doseq [field (if-not (vector? fields) (conj [] fields) fields)]
     (swap! rules
-           #(assoc-in % [field rule] {:func (resolve (symbol (name rule))) :arg arg}))))
+           #(assoc-in % [record field rule] {:func (resolve (symbol (name rule))) :arg arg}))))
 
 (defmacro defvalid
   "Defines two helper functions, valid? and get-errors.
@@ -64,60 +63,61 @@
   [record & body]
   (let [record# record]
     `(do
-      (do ~@body)
-      (defn ~(symbol "get-errors") [] (deref ~'errors))
+      (-> (keyword ~(name record))
+          ~@body)
+      (defn ~(symbol "get-errors") [] (get (deref ~'errors) (keyword ~(name record))))
       (defn ~(symbol "valid?") [~'data]
-        (record-valid? ~'data)))))
+        (record-valid? ~(keyword (name record)) ~'data)))))
 
 (defn add-error
   "Adds an error message to the list of errors. If not field is specified uses
   :base. Base is the error namespace for general errors"
-  [message & [field]]
+  [record message & [field]]
   (swap! errors
-         #(assoc % (or field :base) (conj (get % (or field :base) []) message))))
+         #(assoc-in % [record (or field :base)] (conj (get % (or field :base) []) message))))
 
 ;; ## Rules
 ;; Set of available rules for validation
 (defn validation-rule
   "Helper function that adds common functionality to the rules functions"
-  [predicate message & [field]]
+  [record predicate message & [field]]
   (if-not predicate
     (do
-      (add-error message field)
+      (add-error record message field)
       false)
     true))
 
 (defn presence
   "Checks the field for a value. If empty, nil or false returns false"
-  [field value]
-  (validation-rule (and value (not= value "")) "can't be empty" field))
+  [record field value]
+  (validation-rule record (and value (not= value "")) "can't be empty" field))
 
 (defn number
   "Returns true if the string is a number"
-  [field value]
+  [record field value]
   (try
     (Long/parseLong value)
     true
     (catch Exception e
-      (add-error "is not a number" field)
+      (add-error record "is not a number" field)
       false)))
 
 (defn greater-than
   "Checks if the value is greater than x"
-  [field value x]
-  (validation-rule (> value x) (str "must be greater than " x) field))
+  [record field value x]
+  (validation-rule record (> value x) (str "must be greater than " x) field))
 
 (defn greater-than-or-equal-to
   "Checks if the value is greater than or equal x"
-  [field value x]
-  (validation-rule (>= value x) (str "must be greater than or equal to " x) field))
+  [record field value x]
+  (validation-rule record (>= value x) (str "must be greater than or equal to " x) field))
 
 (defn less-than
   "Checks if the value is less than x"
-  [field value x]
-  (validation-rule (< value x) (str "must be less than " x) field))
+  [record field value x]
+  (validation-rule record (< value x) (str "must be less than " x) field))
 
 (defn less-than-or-equal-to
   "Checks if the value is less than or equal to x"
-  [field value x]
-  (validation-rule (<= value x) (str "must be less than or equal to " x) field))
+  [record field value x]
+  (validation-rule record (<= value x) (str "must be less than or equal to " x) field))

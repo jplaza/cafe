@@ -12,7 +12,9 @@
     (html/html-resource (script-path "users" "shop"))))
 
 (defn register [& request]
-  (layout-one-col (html/html-resource (script-path "users" "new"))))
+  (if (signed-in?)
+    (resp/redirect "/account")
+    (layout-one-col (html/html-resource (script-path "users" "new")))))
 
 (defn sign-in [& request]
   (if (signed-in?)

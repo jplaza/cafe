@@ -4,8 +4,8 @@
 
 (deftest test-rule-insertion
   (do
-    (validate :name :presence)
-    (is (contains? @rules :name) "The rules map should contain the :name key")))
+    (validate :user :name :presence)
+    (is (contains? (:user @rules) :name) "The rules map should contain the :name key")))
 
 (deftest test-defvalid
   (testing "defvalid macro"

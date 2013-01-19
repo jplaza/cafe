@@ -3,6 +3,8 @@
         [korma.core]
         [cafe.core.data.validation]))
 
+(declare insert-items exists?)
+
 (defentity orders)
 (defentity shipment_items)
 
@@ -49,7 +51,7 @@
 (defn update-tracking-number [shipment-id tracking-number]
   (if (exists?)
     (update-attributes shipment-id {:tracking_number tracking-number})
-    (throw .Exception (str "Shipment[" shipment-id "] not found"))))
+    (throw (Exception. (str "Shipment[" shipment-id "] not found")))))
 
 (defn find-by-id [id]
   (first
@@ -58,6 +60,6 @@
       (with shipment_items))))
 
 (defn exists? [shipment-id]
-  (if (int? shipment)
-    (find-by-id shipment)
+  (if (integer? shipment-id)
+    (find-by-id shipment-id)
     false))

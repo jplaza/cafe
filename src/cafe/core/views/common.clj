@@ -54,6 +54,6 @@
 (defn signed-in-user-name []
   (if (signed-in?)
     (:name (session/get :user))
-    "Guest"))
+    "invitado"))
 
 ; (defn get-view-script [])
