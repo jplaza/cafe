@@ -6,7 +6,7 @@
   </div>
   <div class="row">
     <div class="span12">
-      <table>
+      <table class="table table-striped">
         <thead>
           <tr>
             <th>Product</th>
@@ -19,8 +19,8 @@
         <tbody>
           <tr>
             <td data-tpl="cart-item">
-              <div class="cart-item-image">
-                <img src="">
+              <div class="cart-item-image pull-left">
+                <img src="http://placehold.it/80x80" class="thumbnail">
               </div>
               <div class="cart-item-description">
                 Clojure Blue T-shirt
@@ -30,13 +30,18 @@
               $25.45
             </td>
             <td data-tpl="cart-qty">
-              <input name="cart_item[][qty]" type="text" value="1">
+              <input name="cart_item[][qty]" type="text" value="1" class="input-mini">&nbsp;
+              <a href="">
+                <i class="icon-refresh"></i> Update
+              </a>
             </td>
             <td data-tpl="cart-total">
               $25.45
             </td>
             <td data-tpl="cart-action">
-              <a class="btn" href="#">Remove</a>
+              <a class="btn btn-small" href="#">
+                <i class="icon-trash"></i> Remove
+              </a>
             </td>
           </tr>
         </tbody>

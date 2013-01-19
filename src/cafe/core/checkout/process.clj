@@ -26,7 +26,7 @@
 
 (defn add-product [product-id qty unit-price options]
   (let [order (load-order)
-        items (:line-items order)
+        items (:line_items order)
         product-id-key (keyword (str product-id))]
     (if (contains? items product-id-key)
       (order/update-item (update-in (get items product-id-key) [:quantity] + qty))

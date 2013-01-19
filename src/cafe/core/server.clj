@@ -26,6 +26,7 @@
 
 (def app
   (-> (routes users-routes
+              orders-routes
               (route/resources "/")
               (route/not-found "Not Found"))
       (handler/site)

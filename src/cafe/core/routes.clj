@@ -1,6 +1,7 @@
 (ns cafe.core.routes
   (:use [compojure.core])
   (:require [cafe.core.views.home :as home]
+            [cafe.core.views.orders :as orders]
             [cafe.core.views.users :as users]
             [compojure.route :as route]))
 
@@ -14,5 +15,5 @@
   (POST "/users" [user] (users/create user))
   (GET "/account" {:keys [params]} (users/account)))
 
-(defroutes order-routes
-  (GET "/cart" [] "Under construction"))
+(defroutes orders-routes
+  (GET "/cart" [] (orders/cart)))
