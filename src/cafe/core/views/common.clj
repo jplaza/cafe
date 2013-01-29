@@ -57,6 +57,6 @@
     "invitado"))
 
 (defn format-currency [amount]
-  (str "$" (format "%.2f" amount)))
+  (str "$" (format "%.2f" (float amount))))
 
 ; (defn get-view-script [])

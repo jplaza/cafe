@@ -138,6 +138,7 @@
 (defmigration create-table-line-items
   (up [] (create (table :line_items
                         (integer :id :primary-key :auto-inc)
+                        (text :description)
                         (integer :quantity)
                         (decimal :price 10 8 [:not-null])
                         (integer :product_id :not-null [:refer :products :id])

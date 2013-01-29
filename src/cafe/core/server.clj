@@ -1,13 +1,16 @@
 (ns cafe.core.server
   (:require [noir.util.middleware :refer [app-handler wrap-strip-trailing-slash wrap-force-ssl]]
-            [noir.session :refer [wrap-noir-flash wrap-noir-session]]
-            [compojure.core :refer [routes]]
+            [noir.session :refer [wrap-noir-flash wrap-noir-session mem]]
+            [ring.middleware.session.memory :refer [memory-store]]
+            [compojure.core :refer [routes]]            
             [compojure.handler :as handler]
             [compojure.route :as route]
             [cheshire.core :as json]
             [cafe.core.data.base :as data]
             [cafe.core.routes :refer :all]
             [clojure.tools.nrepl.server :refer :all]))
+
+; [ring.middleware :refer [multipart-params]]
 
 ;; Create repl server
 ; (defonce repl-server (start-server :port 7888))
@@ -29,6 +32,6 @@
               orders-routes
               (route/resources "/")
               (route/not-found "Not Found"))
-      (handler/site)
-      (wrap-noir-session)
-      (wrap-noir-flash)))
+      (handler/api)
+      (wrap-noir-flash)
+      (wrap-noir-session {:store (memory-store mem)})))

@@ -4,52 +4,57 @@
     <div class="span12" id="content-header">
     </div>
   </div>
-  <div class="row">
-    <div class="span12">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Total</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="cart-item" data-tpl="cart-item">
-            <td>
-              <div class="cart-item-image pull-left">
-                <img src="http://placehold.it/80x80" class="thumbnail">
-              </div>
-              <div class="cart-item-description">
-                HipHat
-              </div>
-            </td>
-            <td data-tpl="cart-item-price">
-              $25.45
-            </td>
-            <td class="cart-item-qty">
-              <input name="cart_item[][qty]" type="text" value="1" class="input-mini">&nbsp;
-              <a href="">
-                <i class="icon-refresh"></i> Update
-              </a>
-            </td>
-            <td class="cart-item-total">
-              $25.45
-            </td>
-            <td class="cart-item-action">
-              <a class="btn btn-small" href="#">
-                <i class="icon-trash"></i> Remove
-              </a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="row content">
+    <div class="span12" id="cart-container">
+      <form action="" name="cart" method="post">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="cart-item" data-tpl="cart-item">
+              <td>
+                <div class="cart-item-image pull-left">
+                  <img src="http://placehold.it/80x80" class="thumbnail">
+                </div>
+                <div class="cart-item-description">
+                  HipHat
+                </div>
+              </td>
+              <td class="cart-item-price">
+                $25.45
+              </td>
+              <td class="cart-item-qty">
+                <input name="cart_item[][qty]" type="text" value="" class="input-mini">&nbsp;
+                <a href="">
+                  <i class="icon-refresh"></i> Update
+                </a>
+              </td>
+              <td class="cart-item-total">
+                $25.45
+              </td>
+              <td class="cart-item-action">
+                <a class="btn btn-small" href="#">
+                  <i class="icon-trash"></i> Remove
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="clearfix">
+          <button type="submit" class="pull-right btn-large btn-primary">Checkout</button>
+          <a href="" class="btn btn-large pull-left">Continue shopping</a>
+        </div>
+      </form>
     </div>
-  </div>
-  <div class="row">
-    <div class="span12" id="empty-cart">
+  
+    <div class="span12" id="empty-cart-message">
       <h3>Your shopping cart is empty</h3>
     </div>
   </div>

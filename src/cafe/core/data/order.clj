@@ -14,18 +14,15 @@
             [cafe.core.data.address :as address]
             [cafe.core.data.status :as status]))
 
-(declare prepare-input insert-items mapify-items mapify-item)
+(declare prepare-input insert-items order-mapify-items calculate-total)
 
-(defentity line_items
-  (transform #(mapify-item %)))
+(defentity line_items)
 (defentity payments)
 (defentity shipments)
 
 (defvalid order
   (validate :user_id :presence))
   ; (validate [:billing_address_id :shipping_address_id] :presence))
-(defn validation-rules []
-  (deref rules))
 
 ;; ### Orders table fields:
 ;; * id *integer*
@@ -33,7 +30,7 @@
 ;; * billing_address_id _integer_
 ;; * shipping_address_id _integer_
 ;; * purchased_at _datetime_
-;; * last_modified _datetime_
+;; * updated_at _datetime_
 ;; * total _decimal_
 ;; * status_id _integer_
 ;; * special_instructions _varchar_
@@ -44,7 +41,8 @@
   (has-many payments {:fk :order_id})
   (has-many shipments {:fk :order_id})
   (belongs-to status/status)
-  (belongs-to users/users {:fk :user_id}))
+  (belongs-to users/users {:fk :user_id})
+  (transform #(order-mapify-items %)))
 
 ;; ## Data store functions
 
@@ -74,23 +72,23 @@
 
 (defn update-total [order]
   (update orders
-          (set-fields { :total (:total order)
-                        :updated_at (sqlfn now)})
-          (where {:id (:id order)})))
+    (set-fields { :total (:total (calculate-total order))
+                  :updated_at (sqlfn now)})
+    (where {:id (:id order)})))
 
-(defn update-status [order status-id]
+(defn update-status [order new-status-id]
   (update orders
-          (set-fields {:status_id status-id})
+          (set-fields {:status_id new-status-id})
           (where {:id (:id order)})))
 
-(defn set-billing-address [order-id address-id]
-  (update-attribute order-id :billing_address_id address-id))
+(defn set-billing-address [order address]
+  (update-attribute (:id order) :billing_address_id (:id address)))
 
-(defn set-shipping-address [order-id address-id]
-  (update-attribute order-id :shipping_address_id address-id))
+(defn set-shipping-address [order address]
+  (update-attribute (:id order) :shipping_address_id (:id address)))
 
-(defn calculate-total [items]
-  (reduce + (map #(* (:price %) (:quantity %)) items)))
+(defn calculate-total [order]
+  (reduce + (map #(* (:price %) (:quantity %)) (-> order :line_items vals))))
 
 (defn find-all []
   (select orders
@@ -99,17 +97,21 @@
 (defn find-by-id [order-id]
   (first (select orders
            (with line_items)
-           (where {:id (Integer/parseInt order-id)}))))
+           (where {:id order-id}))))
+
+(defn order-exists? [order-id]
+  (boolean (find-by-id order-id)))
+
+(defn mapify-items-list
+  "Converts the items list of maps returned by the select query to a single map"
+  [items]
+  (into {} (map #(conj [] (keyword (str (:product_id %))) %) items)))
+
+(defn order-mapify-items [order]
+  (update-in order [:line_items] mapify-items-list))
 
 (defn mapify-item [item]
   (hash-map (keyword (str (:product_id item))) item))
-
-(defn mapify-items
-  [items]
-  "Returns a map of items, using the product (variant id) as the key for each item"
-  (if (or (list? items) (coll? items))
-    (map mapify-item items)
-    items))
 
 (defn delete! [id]
   (delete orders
@@ -120,8 +122,8 @@
   "Helper function. Inserts line items in the database"
   [order-id items]
   (when items
-    (mapify-items (insert line_items
-                    (values (map #(assoc % :order_id order-id) items))))))
+    (mapify-items-list (insert line_items
+                         (values (map #(assoc % :order_id order-id) items))))))
 
 (defn insert-item
   "Inserts one line item in the database"
@@ -133,6 +135,11 @@
   (when (:order_id item)
     (update line_items
       (set-fields (assoc item :updated_at (sqlfn now)))
+      (where (select-keys item [:id :order_id])))))
+
+(defn remove-item [item]
+  (when (order-exists? (:order_id item))
+    (delete orders
       (where (select-keys item [:id :order_id])))))
 
 (defn update-items [order-id items]
