@@ -24,8 +24,8 @@
 (def order-fixture
   {:user_id 1
    :total 7.98
-   ;:date_purchased "2012-09-24 12:00"
-   ;:last_modified "2012-09-24 12:00"
+   ;:purchased_at "2012-09-24 12:00"
+   ;:updated_at "2012-09-24 12:00"
    :billing_address_id 1
    :shipping_address_id 1
    :status_id 1

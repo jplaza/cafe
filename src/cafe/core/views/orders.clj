@@ -31,18 +31,6 @@
                   [:div#empty-cart-message] nil))
                 (fn [nodes] (html/at nodes [:div#cart-container] nil))))))
 
-
-; (if-not (empty items)
-;                                           (html/at nodes
-;                                             [:.cart-item]
-;                                               (html/clone-for [item items]
-;                                                 [:.cart-item-description] (html/content (:description item))
-;                                                 [:.cart-item-price] (html/content (format-currency (:price item)))
-;                                                 [:.cart-item-total] (html/content (format-currency (* (:quantity item) (:price item))))
-;                                                 [:.cart-item-qty :input] (html/set-attr "value" (:quantity item)))
-;                                             [:div#empty-cart-message] nil)
-;                                           (html/at nodes [:div#cart-container] nil))
-
 (defn render-items [items]
   (if-not (empty items)
     (html/transform [:.cart-item]

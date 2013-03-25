@@ -132,7 +132,7 @@
         (varchar :payment_status 50)
         (text :special_instructions)
         (timestamp :purchased_at (default (now)))
-        (timestamp :last_modified (default (now))))))
+        (timestamp :updated_at (default (now))))))
   (down [] (drop (table :orders))))
 
 (defmigration create-table-line-items

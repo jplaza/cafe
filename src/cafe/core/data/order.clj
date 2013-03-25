@@ -5,10 +5,10 @@
 ;; shipping address, shipments.
 ;;
 (ns cafe.core.data.order
-  (:use [korma.db]
-        [korma.core]
-        [cafe.core.data.validation])
-  (:require [cafe.core.data.user :as users]
+  (:require [korma.db :refer :all]
+            [korma.core :refer :all]
+            [cafe.core.data.validation :refer :all]
+            [cafe.core.data.user :as users]
             [cafe.core.data.order.shipment :as shipment]
             [cafe.core.data.order.payment :as payment]
             [cafe.core.data.address :as address]
@@ -71,15 +71,19 @@
     (where {:id record-id})))
 
 (defn update-total [order]
-  (update orders
-    (set-fields { :total (:total (calculate-total order))
-                  :updated_at (sqlfn now)})
-    (where {:id (:id order)})))
+  (merge 
+    order
+    (update orders
+      (set-fields { :total (calculate-total order)
+                    :updated_at (sqlfn now)})
+      (where {:id (:id order)}))))
 
 (defn update-status [order new-status-id]
-  (update orders
-          (set-fields {:status_id new-status-id})
-          (where {:id (:id order)})))
+  (merge
+    order
+    (update orders
+      (set-fields {:status_id new-status-id})
+      (where {:id (:id order)}))))
 
 (defn set-billing-address [order address]
   (update-attribute (:id order) :billing_address_id (:id address)))
@@ -108,7 +112,7 @@
   (into {} (map #(conj [] (keyword (str (:product_id %))) %) items)))
 
 (defn order-mapify-items [order]
-  (update-in order [:line_items] mapify-items-list))
+  (list (update-in (first order) [:line_items] mapify-items-list)))
 
 (defn mapify-item [item]
   (hash-map (keyword (str (:product_id item))) item))
